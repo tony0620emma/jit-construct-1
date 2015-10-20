@@ -1,0 +1,10 @@
+#define ADD			1
+#define SUB			2
+#define MOV_R		3
+#define MOV_L		4
+#define INPUT		5
+#define OUTPUT		6
+#define BRACE_L		7
+#define BRACE_R		8
+#define ZERO		9
+#define END_OF_FILE	10
