@@ -1,5 +1,5 @@
-#define ADD			1
-#define SUB			2
+#define ADD		1
+#define SUB		2
 #define MOV_R		3
 #define MOV_L		4
 #define INPUT		5
