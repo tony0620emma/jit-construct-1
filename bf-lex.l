@@ -13,8 +13,8 @@
 "."			{return OUTPUT;}
 "["			{return BRACE_L;}
 "]"			{return BRACE_R;}
-<<EOF>>			{return END_OF_FILE;}
-[ \t\n]			;
+<<EOF>> 		{return END_OF_FILE;}
+[ \t\n] 		;
 .			;
 
 
