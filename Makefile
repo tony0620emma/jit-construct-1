@@ -49,12 +49,12 @@ run-jit-x64: jit-x64
 	./jit-x64 progs/hello.b && objdump -D -b binary \
 		-mi386 -Mx86-64 /tmp/jitcode
 
-lex.yy.c: bf-lex.l
-	flex bf-lex.l
+bf-lex.yy.c: bf-lex.l
+	flex -o bf-lex.yy.c bf-lex.l
 
-jit-x64-opt: dynasm-driver.c jit-x64-opt.h lex.yy.c
+jit-x64-opt: dynasm-driver.c jit-x64-opt.h bf-lex.yy.c
 	$(CC) $(CFLAGS) -Wno-unused-function -o $@ -DJIT=\"jit-x64-opt.h\" \
-		dynasm-driver.c lex.yy.c
+		dynasm-driver.c bf-lex.yy.c
 jit-x64-opt.h: jit-x64-opt.dasc
 	        $(LUA) dynasm/dynasm.lua -o $@ jit-x64-opt.dasc
 run-jit-x64-opt: jit-x64-opt
@@ -98,4 +98,4 @@ clean:
 	      hello-x86 hello-x64 hello-arm hello.s \
 	      test_stack jit0-x64 jit0-arm \
 	      jit-x64.h jit-arm.h \
-		  lex.yy.c jit-x64-opt.h
+		  bf-lex.yy.c jit-x64-opt.h
