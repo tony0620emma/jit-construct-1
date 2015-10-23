@@ -1,7 +1,7 @@
 BIN = interpreter \
       compiler-x86 compiler-x64 compiler-arm \
       jit-x64 jit-arm \
-	  jit-x64-opt
+	  jit-x64-opt yacc-bf
 
 CROSS_COMPILE = arm-linux-gnueabihf-
 QEMU_ARM = qemu-arm -L /usr/arm-linux-gnueabihf
@@ -36,6 +36,15 @@ run-compiler: compiler-x86 compiler-x64 compiler-arm
 	$(CROSS_COMPILE)gcc -o hello-arm hello.s
 	@echo 'arm: ' `$(QEMU_ARM) hello-arm`
 	@echo
+
+jit-x64-yacc.tab.c: jit-x64-yacc.y
+	bison -d $<
+
+yacc-bf: jit-x64-yacc.tab.c bf-lex.yy.c
+	gcc -o $@ $^
+	./$@ progs/hello.b > hello.s
+	gcc hello.s -o hello-yacc
+	@echo 'yacc: ' `./hello-yacc`
 
 jit0-x64: tests/jit0-x64.c
 	$(CC) $(CFLAGS) -o $@ $^
@@ -95,7 +104,8 @@ test_stack: tests/test_stack.c
 
 clean:
 	$(RM) $(BIN) \
-	      hello-x86 hello-x64 hello-arm hello.s \
+	      hello-x86 hello-x64 hello-arm \
 	      test_stack jit0-x64 jit0-arm \
 	      jit-x64.h jit-arm.h \
-		  bf-lex.yy.c jit-x64-opt.h
+	      bf-lex.yy.c jit-x64-opt.h hello-yacc \
+	      jit-x64-yacc.tab.* *.s
