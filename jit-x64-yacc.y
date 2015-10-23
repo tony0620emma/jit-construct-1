@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include "util.h"
 
+#ifndef YYSTYPE
+#define YYSTYPE int
+#endif
+extern YYSTYPE yylval;
+
 int num_brackets = 0;
 int matching_bracket = 0;
 struct stack stack = { .size = 0, .items = { 0 } };
@@ -43,39 +48,41 @@ commands:
 	;
 
 command:
-       	ZERO {puts("  movq $0, %r12");}
+       	/*ZERO 	{puts("  movq $0, %r12");}
+	|*/
+	ADD 	{printf("    addq $%d, (%%r12)\n", $1);}
 	|
-	ADD {printf("  addq $%d, (%%r12)\n", $1);}
+	SUB 	{printf("    addq $%d, (%%r12)\n", -($1));}
 	|
-	SUB {printf("  addq $%d, (%%r12)\n", -($1));}
+	MOV_R 	{printf("    addq $%d, %%r12\n", $1);}
 	|
-	MOV_R {printf("  addq $%d, %%r12\n", $1);}
+	MOV_L 	{printf("    addq $%d, %%r12\n", -($1));}
 	|
-	MOV_L {printf("  addq $%d, %%r12\n", -($1));}
+	OUTPUT 	{// move byte to double word and zero upper bits
+		 // since putchar takes an int.
+		 puts("    movzbl (%r12), %edi");
+		 puts("    call putchar");}
 	|
-	OUTPUT {// move byte to double word and zero upper bits
-			// since putchar takes an int.
-			puts("    movzbl (%r12), %edi");
-			puts("    call putchar");}
+	INPUT 	{puts("    call getchar");
+		 puts("    movb %al, (%r12)");}
 	|
-	INPUT {puts("    call getchar");
-			puts("    movb %al, (%r12)");}
+	BRA_L 	{if (stack_push(&stack, num_brackets) == 0) {
+		 	puts  ("    cmpb $0, (%r12)");
+			printf("    je bracket_%d_end\n", num_brackets);
+			printf("bracket_%d_start:\n", num_brackets++);
+		 } else {
+			err("out of stack space, too much nesting");
+		 }}
 	|
-	BRA_L {if (stack_push(&stack, num_brackets) == 0) {
-				puts  ("    cmpb $0, (%r12)");
-				printf("    je bracket_%d_end\n", num_brackets);
-				printf("bracket_%d_start:\n", num_brackets++);
-			} else {
-				err("out of stack space, too much nesting");
-			}}
+	BRA_R 	{if (stack_pop(&stack, &matching_bracket) == 0) {
+			puts("    cmpb $0, (%r12)");
+			printf("    jne bracket_%d_start\n", matching_bracket);
+			printf("bracket_%d_end:\n", matching_bracket);
+		} else {
+			err("stack underflow, unmatched brackets");
+		}}
 	|
-	BRA_R {if (stack_pop(&stack, &matching_bracket) == 0) {
-				puts("    cmpb $0, (%r12)");
-				printf("    jne bracket_%d_start\n", matching_bracket);
-				printf("bracket_%d_end:\n", matching_bracket);
-			} else {
-				err("stack underflow, unmatched brackets");
-			}}
+	END_OF_FILE{ return 0;}
 	;
 
 %%

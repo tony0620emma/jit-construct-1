@@ -1,6 +1,5 @@
 %{
 #include "jit-x64-yacc.tab.h"
-extern YYSTYPE yylval;
 %}
 
 %%
